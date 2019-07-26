@@ -80,6 +80,7 @@ Clone the repository.
 git clone git@github.com:MorGriffiths/Udacity_Navigation.git
 cd Udacity_Navigation
 ```
+conda create --name myenv --file spec-file.txt
 
 Create a virtual environment and activate it.
 
