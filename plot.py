@@ -41,5 +41,7 @@ def plot(name,means,stds):
     plt.close()
 
 if __name__ == "__main__":
-    means, stds = pickle.load(open('ppo_scores.p', 'rb'))
+    # means, stds = pickle.load(open('maddpg_scores.p', 'rb'))
+    means = np.arange(5)
+    stds = np.ones(5)
     plot(means,stds)

@@ -2,7 +2,9 @@ import numpy as np
 import torch
 import random
 from collections import namedtuple,deque
-
+"""
+Multi Agent buffer
+"""
 class ReplayBuffer(object):
     def __init__(self,action_size,buffer_size,batch_size,seed):
         

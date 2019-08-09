@@ -5,7 +5,7 @@ from collections import namedtuple, deque
 from Buffers.priority_tree import PriorityTree
 
 """
-Priority Buffer HyperParameters
+Multi Agent Priority Buffer HyperParameters
 alpha(priority or w) dictates how biased the sampling should be towards the TD error. 0 < a < 1
 beta(IS) informs the importance of the sample update
 
