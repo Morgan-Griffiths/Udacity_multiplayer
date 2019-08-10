@@ -9,7 +9,7 @@ class Config(object):
         if agent == "maddpg":
             self.seed = 1234
             self.name = agent
-            self.num_agents=20
+            self.num_agents=2
             self.buffer_size = 100000
             self.min_buffer_size = 1000
             self.batch_size = 25
@@ -31,13 +31,13 @@ class Config(object):
             self.v_max = 2
             self.delta_z = (self.v_min - self.v_max) / (self.N_atoms - 1)
             # Training
-            self.episodes = 50
+            self.episodes = 2000
             self.tmax = 200
             self.print_every = 4
             self.UPDATE_EVERY = 4
-            self.SGD_epoch = 10
+            self.SGD_epoch = 4
             self.actor_path = 'model_weights/actor/'
             self.critic_path = 'model_weights/critic/'
-            self.winning_condition = 90
+            self.winning_condition = 0.5
         else:
             raise ValueError('Agent not implemented')

@@ -1,6 +1,4 @@
-# Reacher Report
-
-Version 2 of reacher with 20 agents.
+# Tennis Report
 
 At first i tried to solve the environment with a DDPG agent. Funnily enough, initially i didn't get any rewards. Which was due to not using any exploration noise (Thats the thing about acting deterministically! No stochasticity, no exploration). However even after i fixed that, i found DDPG to be extremely unreliable in performance. Even with regards to simple environments like MountainCarContinuous and Pendulum. I was further disheartened by the fact that when i checked other people's implementations of DDPG, they were ALSO extremely unreliable in performance. Sometimes failing to learn at all. From reading the paper on D4PG, this seems like the necessary improvement on the algorithm, but also would take some time to implement myself, since i hadn't implemented the C51 distributional DQN algorithm in the previous project.
 
@@ -17,10 +15,6 @@ Each episode i collect 20 trajectories of size 320, and then run 10 steps of lea
 With a sliding window of 10, The agent solved the environment in 1560 episodes. With a sliding window of 100 the agent solved the env in 1940 episodes.
 
 ![Graph](/PPO_performance_mean100.png)
-
-I realize it was supposed to solve it within 100 episodes, but that wasn't well defined to my understanding. I can make it solve it in 1 very long episode, or 100 or 1000. Depending on how many trajectories and learning steps i take. So i ended up leaving the name as episode. I also skipped adding a dones mask as the episodes never terminate.
-
-However i managed to make it into quite an ordeal!
 
 Some issues i ran into:
 I tried to use both of my GPUs, but since all tensors must be calculated on the same device that runs the policy, 2 seems redundant. I suppose if i had a distributed setup then 2 would work.

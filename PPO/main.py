@@ -1,13 +1,11 @@
 
 from unity_env import UnityEnv
 import numpy as np
+import torch
 
-from Agents.ddpg import DDPG
-from Agents.ppo import PPO
-from Agents.reinforce import REINFORCE
+from ppo import PPO
 from config import Config
 from train_ppo import train_ppo
-from train_ddpg import train_ddpg
 from plot import plot
 
 BUFFER_SIZE = 10000
@@ -38,7 +36,7 @@ def main(algo):
 
     # Load the ENV
     # env = UnityEnv(env_file='Environments/Reacher_Linux_one/Reacher.x86_64',no_graphics=True)
-    env = UnityEnv(env_file='Environments/Reacher_Linux_20/Reacher.x86_64',no_graphics=True)
+    env = UnityEnv(env_file='Environments/Tennis_Linux/Tennis.x86_64',no_graphics=True)
 
     # number of agents
     num_agents = env.num_agents
@@ -53,8 +51,25 @@ def main(algo):
     
     config = Config(algo)
     
-    agent = PPO(env,action_size,state_size,seed,config)
-    train_ppo(agent,EPISODES,path)
+
+    if torch.cuda.is_available():
+        try:
+            device = torch.device("cuda:0")
+            device2 = torch.device("cuda:1")
+        except:
+            device = torch.device("cuda:0")
+    else:
+        device = torch.device('cpu')
+    try:
+        agent_a = PPO(action_size,state_size,seed,device,config)
+        agent_b = PPO(action_size,state_size,seed,device2,config)
+        print('Double GPU')
+    except:
+        print('Single GPU')
+        agent_a = PPO(action_size,state_size,seed,device,config)
+        agent_b = PPO(action_size,state_size,seed,device,config)
+
+    train_ppo(env,[agent_a,agent_b],EPISODES,path)
 
 if __name__ == "__main__":
     algo = 'PPO'

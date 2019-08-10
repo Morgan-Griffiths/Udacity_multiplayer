@@ -9,6 +9,11 @@ from env_wrapper import MultiEnv
 from maddpg import MultiAgent
 
 """
+TODO 
+- Separate the states and next_states so each actor acts only on its own.
+- Don't need to have an env_wrapper, because its only two agents.
+- rewards are generated separately for each agent.
+
 Workflow:
 load objects
     Env_wrapper

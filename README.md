@@ -4,24 +4,21 @@ Submission for completing the Udacity Project
 
 ## Implementation
 
-The agent is a combination of 4 add-ons to vanilla DQN.
+The agent is MADDPG (Multi Agent Deep Deterministic Policy Gradients)
 
-- Priority Replay
-- Double DQN
-- Dueling DQN
-- Polyak Averaging
+- Soft updates
 
 Contains the weights of the trained RL bot to solve the problem.
 Graphs indicating the progress of the agent and when it solved the problem.
 
-The DQN agent solved the enviroment in 625 steps (Average Reward > 13).
+The MADDPG agent solved the enviroment in 625 steps (Average Reward over the last 100 steps > 0.5).
 
 ## There are two Environments:
 
 ### Tennis
 
 - State space = 24
-- Action space = 2 (continuous
+- Action space = 2 (continuous)
 
 In this environment, two agents control rackets to bounce a ball over a net. If an agent hits the ball over the net, it receives a reward of +0.1. If an agent lets a ball hit the ground or hits the ball out of bounds, it receives a reward of -0.01. Thus, the goal of each agent is to keep the ball in play.
 
@@ -57,20 +54,22 @@ Benchmark Mean Reward (Striker & Goalie Brain): 0 (the means will be inverse of 
 
 ### Agents
 
-DQN, Priority_DQN
+MADDPG, PPO (In process of implementation)
 
 ### Buffers
 
-Vanilla ReplayBuffer, PriorityReplayBuffer
+Vanilla ReplayBuffer, Priority Experience Replay
 
-### Networks
+### models.py
 
-QNetwork, Dueling_QNetwork
+**contains two models:**
 
-### Main files
+Actor, Critic
 
-train.py
-checkpoint.pth
+### Agent weights
+
+model_weights/actor
+model_weights/critic
 
 ## Installation
 
@@ -122,14 +121,12 @@ If necessary, inside main.py, change the path to the unity environment appropria
 
 ## Run the project
 
-Each project solution is contained within the notebooks "Navigation.ipynb" and "Navigation_Pixels.ipynb"
+Make sure the environment path is correctly set in main.py and run 
 
-Make sure the environment path is correctly set in the desired notebook. Then run the cells as wanted.
+```
+python main.py
+```
 
 ## Futher details
 
-The Vector Banana report.md is in the Vector_banana folder. Along with the performance graph and the weights.
-
-Additionally, i tried training visual banana from scratch but likely due to memory constraints it essentially broke in the notebook format. I expect i will be able to train effectively to outside of that. And in addition run some refresh to clear the cache every N epsidoes.
-
-[link](https://medium.com/@C5ipo7i/improving-dqn-cde578df5d73?postPublishedType=initial) A medium article describing the different add-ons i implemented to DQN
+See Tennis_report.md along with the performance graph and the weights.

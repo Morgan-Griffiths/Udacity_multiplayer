@@ -14,13 +14,15 @@ from noise import GaussianNoise,OUnoise
 # from env_wrapper import MultiEnv
 from models import hard_update
 from plot import plot
+from utils import transpose_list,transpose_to_tensor
 
 class MultiAgent(object):
-    def __init__(self,nS,nA,config,K_envs,K):
+    def __init__(self,env,nS,nA,config):
         self.seed = config.seed
         self.name = config.name
         self.nA = nA
         self.nS = nS
+        self.num_agents = config.num_agents
         self.episodes = config.episodes
         self.tmax = config.tmax
         self.print_every = config.print_every
@@ -28,8 +30,8 @@ class MultiAgent(object):
         self.SGD_epoch = config.SGD_epoch
         self.actor_path = config.actor_path
         self.critic_path = config.critic_path
-        # self.noise = GaussianNoise((K,nA),config.episodes)
-        self.noise = OUnoise(K,config.seed)
+        self.noise = GaussianNoise((self.num_agents,nA),config.episodes)
+        # self.noise = OUnoise(nA,config.seed)
         self.winning_condition = config.winning_condition
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -42,9 +44,8 @@ class MultiAgent(object):
         self.tau = config.TAU
         
         # For multi agent
-        self.K = K
-        self.nO = K * nS # Observation space
-        self.K_envs = K_envs
+        self.nO = self.num_agents * nS # Observation space
+        self.env = env
         self.R = ReplayBuffer(config.buffer_size,config.batch_size,config.seed)
 
         # Instantiating Actor and Critic
@@ -52,14 +53,10 @@ class MultiAgent(object):
         self.base_critic = Critic(self.seed,self.nO,self.nA)
 
         # Instantiate the desired number of agents and envs
-        self.local_critics = [Critic(self.seed,self.nO,self.nA).to(self.device) for agent in range(K)]
-        self.local_actors = [Actor(self.seed,self.nS,self.nA).to(self.device) for agent in range(K)]
-        self.target_critics = [Critic(self.seed,self.nO,self.nA).to(self.device) for agent in range(K)]
-        self.target_actors = [Actor(self.seed,self.nS,self.nA).to(self.device) for agent in range(K)]
-
-        # Instantiate optimizers
-        self.critic_optimizers = [optim.Adam(self.local_critics[i].parameters(), lr = 1e-3,weight_decay=self.L2) for i in range(self.K)]
-        self.actor_optimizers = [optim.Adam(self.local_actors[i].parameters(), lr = 1e-4) for i in range(self.K)]
+        self.local_critics = [Critic(self.seed,self.nO,self.nA) for agent in range(self.num_agents)]
+        self.local_actors = [Actor(self.seed,self.nS,self.nA) for agent in range(self.num_agents)]
+        self.target_critics = [Critic(self.seed,self.nO,self.nA) for agent in range(self.num_agents)]
+        self.target_actors = [Actor(self.seed,self.nS,self.nA) for agent in range(self.num_agents)]
         
         # Copy the weights from base agents to target and local
         map(lambda x: hard_update(self.base_critic,x),self.local_critics)
@@ -67,22 +64,19 @@ class MultiAgent(object):
         map(lambda x: hard_update(self.base_actor,x),self.local_actors)
         map(lambda x: hard_update(self.base_actor,x),self.target_actors)
 
+        # Instantiate optimizers
+        self.critic_optimizers = [optim.Adam(self.local_critics[i].parameters(), lr = 1e-3,weight_decay=self.L2) for i in range(self.num_agents)]
+        self.actor_optimizers = [optim.Adam(self.local_actors[i].parameters(), lr = 1e-4) for i in range(self.num_agents)]
+
     def load_weights(self,critic_path,actor_path):
         # Load weigths from both
-
-        # self.local_actors[0].load_state_dict(torch.load(actor_path+'0.ckpt'))
-        # self.local_actors[0].eval()
-        # self.local_actors[1].load_state_dict(torch.load(actor_path+'1.ckpt'))
-        # self.local_actors[1].eval()
-        [actor.load_state_dict(torch.load(actor_path+str(index)+'.ckpt')) for actor,index in zip(self.local_actors,range(self.K))]
+        [actor.load_state_dict(torch.load(actor_path+str(index)+'.ckpt')) for actor,index in zip(self.local_actors,range(self.num_agents))]
         [actor.eval() for actor in self.local_actors]
-        # self.local_critics = [critic.load_state_dict(torch.load(critic_path+str(index)+'.ckpt')) for critic,index in zip(self.local_critics,range(self.K))]
         
-
     def save_weights(self,critic_path,actor_path):
         # Save weights for both
-        [torch.save(critic.state_dict(), critic_path+str(index)+'.ckpt') for critic,index in zip(self.local_critics,range(self.K))]
-        [torch.save(actor.state_dict(), actor_path+str(index)+'.ckpt') for actor,index in zip(self.local_actors,range(self.K))]
+        [torch.save(critic.state_dict(), critic_path+str(index)+'.ckpt') for critic,index in zip(self.local_critics,range(self.num_agents))]
+        [torch.save(actor.state_dict(), actor_path+str(index)+'.ckpt') for actor,index in zip(self.local_actors,range(self.num_agents))]
 
     def train(self):
         """
@@ -92,27 +86,33 @@ class MultiAgent(object):
         tic = time.time()
         means = []
         stds = []
+        steps = 0
         scores_window = deque(maxlen=100)
         for e in range(1,self.episodes):
+
+            self.noise.step()
             episode_scores = []
-            obs,states = self.K_envs.reset()
+            obs = self.env.reset()
+            obs = obs
             for t in range(self.tmax):
-                actions = self.act(states)
-                next_obs,next_states,rewards,dones = self.K_envs.step(actions)
+                actions = self.act(obs)
+                next_obs,rewards,dones = self.env.step(actions)
 
                 # Store experience
-                self.R.add(obs,states,actions,rewards,next_obs,next_states,dones)
+                if np.max(rewards) > 0:
+                    print('hit the ball over the net',rewards)
+                self.R.add(obs.reshape(1,48),obs,actions,rewards,next_obs.reshape(1,48),next_obs,dones)
                 # Learn
                 if t % self.update_every == 0 and len(self.R) > self.min_buffer_size:
                     for _ in range(self.SGD_epoch):
                         # Update each agent
-                        for i in range(self.K):
+                        for i in range(self.num_agents):
                             self.learn(i)
-                states = next_states
                 obs = next_obs
                 # Score tracking
                 episode_scores.append(np.sum(rewards))
                 
+            steps += int(t)
             means.append(np.mean(episode_scores))
             stds.append(np.std(episode_scores))
             scores_window.append(np.mean(episode_scores))
@@ -123,7 +123,7 @@ class MultiAgent(object):
                 r_min = min(scores_window)
                 r_std = np.std(scores_window)
                 plot(self.name,means,stds)
-                print("\rEpisode: {} out of {}, Steps {}, Rewards: mean {:.2f}, min {:.2f}, max {:.2f}, std {:.2f}, Elapsed {:.2f}".format(e,self.episodes,int(e*self.tmax*self.K),r_mean,r_min,r_max,r_std,(toc-tic)/60))
+                print("\rEpisode: {} out of {}, Steps {}, Rewards: mean {:.2f}, min {:.2f}, max {:.2f}, std {:.2f}, Elapsed {:.2f}".format(e,self.episodes,steps,r_mean,r_min,r_max,r_std,(toc-tic)/60))
             if np.mean(scores_window) > self.winning_condition:
                 print('Env solved!')
                 # save scores
@@ -133,19 +133,29 @@ class MultiAgent(object):
                 break
                 
         
-    def act(self,states):
+    def act(self,obs):
         # split states for each agent
-        actions = [actor(state).detach().cpu().numpy() for actor,state in zip(self.local_actors,states)]
+        actions = [actor(obs[i]).detach().cpu().numpy() for i,actor in enumerate(self.local_actors)]
         actions = np.vstack(actions)
         # Add noise for exploration
         actions = np.add(actions,self.noise.sample())
         return actions
 
-    def test(self,state):
-        # split states for each agent
-        # actions = [actor(state).detach().cpu().numpy() for actor,state in zip(self.local_actors,states)]
-        # actions = np.vstack(actions)
-        action = self.local_actors[0](state).detach().cpu().numpy()
+    def evaluate(self,state):
+        # TODO
+        # Evaluate the agent's performance
+        rewards = []
+        
+        obs = env.reset()
+        for i in range(400):
+            action = maddpg.act(obs)
+            next_obs,reward,done = env.step(action)
+            obs = next_obs
+            rewards.append(np.sum(rewards))
+            if done:
+                break
+        self.env.close()
+        print("The agent achieved an average score of {:.2f}".format(np.mean(rewards)))
         return action
 
     def learn(self,index):
@@ -154,7 +164,7 @@ class MultiAgent(object):
         # Get target actions and target values
         self.critic_optimizers[index].zero_grad()
         with torch.no_grad():
-            target_actions = self.target_actors[index](next_states)
+            target_actions = torch.stack([self.target_actors[index](next_states[i]) for i in range(next_states.shape[0])])
         next_values = self.target_critics[index](next_obs,target_actions).detach()
 
         target_y = rewards + self.gamma * next_values * (1-dones)
@@ -165,7 +175,7 @@ class MultiAgent(object):
         self.critic_optimizers[index].step()
         # Update actor
         self.actor_optimizers[index].zero_grad()
-        local_actions = self.local_actors[index](states)
+        local_actions = torch.stack([self.local_actors[index](states[i]) for i in range(states.shape[0])])
         actor_loss = -self.local_critics[index](obs,local_actions).mean()
         actor_loss.backward()
         self.actor_optimizers[index].step()

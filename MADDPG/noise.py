@@ -48,7 +48,7 @@ class GaussianNoise(object):
         x = self.epsilon * np.random.normal(self.mu, self.var, size=self.dimension)
         return x
 
-    def reset(self):
+    def step(self):
         self.epsilon = self.min_epsilon + (1.0 - self.min_epsilon)*np.exp(-self.decay_rate*self.iter)
 
 class OUnoise(object):
@@ -67,4 +67,4 @@ class OUnoise(object):
         x = self.state
         dx = self.theta * (self.mu - x) +self.sigma * np.array([random.random() for i in range(len(x))])
         self.state = x+dx
-        return self.state.reshape(self.size,1)
+        return self.state
