@@ -22,6 +22,35 @@ With a sliding window of 100 the agent solved the env in 1940 episodes.
 ![Graph](/Assets/ddpg_performance.png)
 ![Graph](/Assets/ddpg_mean_steps.png)
 
+## Model architecture
+I stack the stacks and actions
+
+- states = (48)
+- action = (4)
+
+There are two models:
+
+_Critic_
+Forward pass takes the state and action. Outputs the Q value of the state+action pair
+
+| Layer     | Shape  | 
+| ------------- | ------ |
+| input_layer     | (48,256)     | 
+| xs     |concat input_layer,action     | 
+| fc1            |(256+4,128)    | 
+| output_layer     | (128,1)    | 
+
+The layers are initialized according to the DDPG paper. With fan in and for the output layer a uniform dist of (-3e-3,3e-3)
+
+_Actor_
+Takes state as input
+
+| Layer     | Shape  | 
+| ------------- | ------ |
+| input_layer     | (48,256)     | 
+| fc1     |(256,128)     | 
+| output_layer     | (128,4)    | 
+
 ## The Algorithm
 
 **Overview**
@@ -120,8 +149,6 @@ Hyperparams are all loaded from the config.py file
 | Alpha          | 0.6   | PER priority                                        |
 
 ## Future work
-
-One thing i noticed while combing through my program in debug mode, was the the initial state estimates can be quite large (neg or pos). Whereas the rewards are 0.1 or 0. Some possible improvements:
 
 - D4PG
 - MADDPG
