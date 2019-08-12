@@ -55,7 +55,7 @@ class PriorityReplayBuffer(object):
         # Anneal beta
         self.update_beta()
         # Get the samples and indicies
-        priorities,indicies = self.sum_tree.sample(self.index)
+        priorities,indicies = self.sum_tree.sample(self.index,len(self))
         # Normalize with the sum
         norm_priorities = priorities / self.sum_tree.root.value
         samples = [self.memory[index] for index in indicies]
@@ -81,12 +81,6 @@ class PriorityReplayBuffer(object):
         # rewards = torch.from_numpy(np.vstack([e.reward for e in samples if e is not None])).float().to(self.device)
         # next_states = torch.from_numpy(np.vstack([e.next_state for e in samples if e is not None])).float().to(self.device)
         # dones = torch.from_numpy(np.vstack([e.done for e in samples if e is not None]).astype(int)).float().to(self.device)
-        
-        # if index % 4900 == 0:
-        #     print('beta',self.beta)
-        #     print('self.max_w',self.max_w)
-        #     print('len mem',len(self.memory))
-        #     print('tree sum',self.sum_tree.root.value)
         
         return (states,actions,rewards,next_states,dones),indicies,norm_importances
 
