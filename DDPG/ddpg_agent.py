@@ -12,6 +12,7 @@ from Buffers.PER import PriorityReplayBuffer
 from Buffers.priority_tree import PriorityTree
 from utils.noise import OUnoise
 from models import hard_update
+from adaptive_noise import AdaptiveParamNoise
 
 class Agent():
     def __init__(self, nS, nA, actor, critic,config):
@@ -42,6 +43,10 @@ class Agent():
         # actors networks
         self.actor = actor(self.seed,nS, nA).to(self.device)
         self.actor_target = actor(self.seed,nS, nA).to(self.device)
+
+        # Param noise
+        self.param_noise = AdaptiveParamNoise()
+        self.actor_perturbed = actor(self.seed,nS, nA).to(self.device)
 
         # critic networks
         self.critic = critic(self.seed,nS, nA).to(self.device)
@@ -78,6 +83,16 @@ class Agent():
     def reset_episode(self):
         self.noise.reset()
 
+    def ddpg_distance_metric(actions1,actions2):
+        """
+        Computes distance between actions taken by two different policies
+        Expects numpy arrays
+        """
+        diff = actions1-actions2
+        mean_diff = np.mean(np.square(diff),axis=0)
+        dist = sqrt(np.mean(mean_diff))
+        return dist
+
     def act(self, state):
         with torch.no_grad():
             action = self.actor(self.tensor(state)).cpu().numpy()
@@ -85,6 +100,22 @@ class Agent():
         self.noise_scale = max(self.noise_scale * self.noise_decay, 0.01)
         self.actor.train()
         return np.clip(action, self.action_low, self.action_high)
+
+    def act_perturbed(self,state):
+        with torch.no_grad():
+            action = self.actor_perturbed(self.tensor(state)).cpu().numpy()
+        return action
+
+    def perturbed_update(self):
+        hard_update(self.actor,self.actor_perturbed)
+        params = self.actor_perturbed.state_dict()
+        for name in params:
+            if 'ln' in name:
+                pass
+            param = params[name]
+            random = torch.randn(param.shape).to(self.device)
+            param += random * self.param_noise.current_stddev
+            
 
     def evaluate(self,state):
         self.actor.eval()

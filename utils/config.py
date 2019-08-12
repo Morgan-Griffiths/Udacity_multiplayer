@@ -42,8 +42,7 @@ class Config(object):
             self.tmax = 2000
             self.print_every = 4
             self.SGD_epoch = 4
-            self.actor_path = 'model_weights/actor/'
-            self.critic_path = 'model_weights/critic/'
+            self.checkpoint_path = 'model_weights/ddpg.ckpt'
             self.winning_condition = 0.5
         else:
             raise ValueError('Agent not implemented')
