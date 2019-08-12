@@ -3,6 +3,7 @@ import numpy as np
 from collections import deque
 import time
 import torch
+import pickle
 
 from utils.plot import plot
 
@@ -46,7 +47,7 @@ def train_ddpg(env, agent, config):
         means.append(np.mean(episode_scores))
         stds.append(np.std(episode_scores))
         scores_window.append(np.sum(episode_scores))
-        if e % 4 == 0:
+        if e % 50 == 0:
             toc = time.time()
             r_mean = np.mean(scores_window)
             r_max = max(scores_window)
@@ -54,14 +55,14 @@ def train_ddpg(env, agent, config):
             r_std = np.std(scores_window)
             plot(means,stds,num_agents=2,name=config.name,game='Tennis')
             print("\rEpisode: {} out of {}, Steps {}, Mean steps {:.1f}, Rewards: mean {:.2f}, min {:.2f}, max {:.2f}, std {:.2f}, Elapsed {:.2f}".format(e,episodes,np.sum(steps),np.mean(steps),r_mean,r_min,r_max,r_std,(toc-tic)/60))
-        if np.mean(scores_window) > config.winning_condition:
+        if np.mean(scores_window) > 0.01:#config.winning_condition:
             print('Env solved!')
             # save scores
             pickle.dump([means,stds], open(str(config.name)+'_scores.p', 'wb'))
             # save policy
-            agent.save_weights(config.critic_path,config.actor_path)
+            agent.save_weights(config.checkpoint_path)
             break
-    self.env.close()
+    env.close()
 
     
 

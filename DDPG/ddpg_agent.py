@@ -121,7 +121,7 @@ class Agent():
         self.actor.eval()
         with torch.no_grad():
             action = self.actor(self.tensor(state)).cpu().numpy()
-        return np.clip(action, self.action_low, self.action_high)
+        return action
 
     def step(self, obs, actions, rewards, next_obs, dones):
         # cast as torch tensors
