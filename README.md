@@ -6,13 +6,13 @@ Submission for completing the Udacity Project
 
 The agent is DDPG (Deep Deterministic Policy Gradients) with the following upgrades.
 
-- Priority Replay Buffer
+- Priority Replay Buffer (With Priority Tree)
 - Soft updates
 
 Contains the weights of the trained RL bot to solve the problem.
 Graphs indicating the progress of the agent and when it solved the problem.
 
-The DDPG agent solved the enviroment in 625 steps (Average Reward over the last 100 steps > 0.5).
+The DDPG agent solved the enviroment in 1450 episodes (Average Reward over the last 100 steps > 0.5). Which took 20 minutes of actual training time. And a maximum reward of 2.8
 
 ## There are two Environments:
 
@@ -79,13 +79,23 @@ Clone the repository.
 git clone git@github.com:MorGriffiths/Udacity_Navigation.git
 cd Udacity_Navigation
 ```
-conda create --name myenv --file spec-file.txt
 
-Create a virtual environment and activate it.
+install anaconda
+
+install the anaconda environment from the conda_requirements.txt file
 
 ```
-python -m venv banana
-source banana/bin/activate
+conda create --name Tennis --file conda_requirements.txt
+```
+
+depending on which version of anaconda you have
+
+```
+conda activate Tennis
+```
+or 
+```
+source activate Tennis
 ```
 
 Install Unity ml-agents.
