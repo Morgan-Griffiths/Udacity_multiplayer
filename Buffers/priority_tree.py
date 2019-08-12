@@ -46,6 +46,8 @@ class PriorityTree(object):
         self.epsilon = epsilon
         self.buffer_size = buffer_size
         self.batch_size = batch_size
+        self.batch_indicies = np.arange(0,self.batch_size)
+
         self.num_intermediate_nodes = math.ceil(buffer_size / batch_size)
         self.current_intermediate_node = 0
         self.root = Node(None)
@@ -63,13 +65,19 @@ class PriorityTree(object):
         # Update sum
         propogate(self.intermediate_dict[index],self.priority_array)
     
-    def sample(self,index):
+    def sample(self,index,limit):
         # Sample one experience uniformly from each slice of the priorities
-        if index >= self.buffer_size:
-            indicies = [random.sample(list(range(sample*self.num_intermediate_nodes,(sample+1)*self.num_intermediate_nodes)),1)[0] for sample in range(self.batch_size)]
-        else:
-            interval = int(index / self.batch_size)
-            indicies = [random.sample(list(range(sample*interval,(sample+1)*interval)),1)[0] for sample in range(self.batch_size)]
+        # if index >= self.buffer_size:
+        #     indicies = [random.sample(list(range(sample*self.num_intermediate_nodes,(sample+1)*self.num_intermediate_nodes)),1)[0] for sample in range(self.batch_size)]
+        #     # indicies = np.random.sample(np.arange(sample*self.num_intermediate_nodes,(sample+1)*self.num_intermediate_nodes))
+        # else:
+        spacing = np.linspace(0,limit-self.batch_size,self.batch_size,dtype=np.int)
+        random_indicies = np.random.choice(self.batch_indicies,size=self.batch_size)
+        indicies = random_indicies + spacing
+
+
+        # interval = int(index / self.batch_size)
+        # indicies = [random.sample(list(range(sample*interval,(sample+1)*interval)),1)[0] for sample in range(self.batch_size)]
 #         print('indicies',indicies)
         priorities = self.priority_array[indicies]
         return priorities,indicies
