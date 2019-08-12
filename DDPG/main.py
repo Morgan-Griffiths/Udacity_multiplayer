@@ -22,9 +22,9 @@ Instantiates config, ddpg agent, expands state and action spaces to include both
 def main(algo):
     # Load the ENV
     ### For running in VSCode ###
-    env = UnityEnv(env_file='Environments/Tennis_Linux/Tennis.x86_64',no_graphics=True)
+    # env = UnityEnv(env_file='Environments/Tennis_Linux/Tennis.x86_64',no_graphics=True)
     ### For running from terminal ###
-    # env = UnityEnv(env_file='../Environments/Tennis_Linux/Tennis.x86_64',no_graphics=True)
+    env = UnityEnv(env_file='../Environments/Tennis_Linux/Tennis.x86_64',no_graphics=True)
 
     # number of agents
     num_agents = env.num_agents
