@@ -53,23 +53,24 @@ def main(algo):
     
 
     if torch.cuda.is_available():
-        try:
-            device = torch.device("cuda:0")
-            device2 = torch.device("cuda:1")
-        except:
-            device = torch.device("cuda:0")
-    else:
-        device = torch.device('cpu')
-    try:
-        agent_a = PPO(action_size,state_size,seed,device,config)
-        agent_b = PPO(action_size,state_size,seed,device2,config)
-        print('Double GPU')
-    except:
-        print('Single GPU')
-        agent_a = PPO(action_size,state_size,seed,device,config)
-        agent_b = PPO(action_size,state_size,seed,device,config)
+        device = torch.device("cuda:0")
+        device2 = torch.device("cuda:1")
+    agent = PPO(action_size,state_size,seed,device,config)
+    #     try:
+    #     except:
+    #         device = torch.device("cuda:0")
+    # else:
+    #     device = torch.device('cpu')
+    # try:
+    #     agent_a = PPO(action_size,state_size,seed,device,config)
+    #     agent_b = PPO(action_size,state_size,seed,device2,config)
+    #     print('Double GPU')
+    # except:
+    #     print('Single GPU')
+    #     agent_a = PPO(action_size,state_size,seed,device,config)
+    #     agent_b = PPO(action_size,state_size,seed,device,config)
 
-    train_ppo(env,[agent_a,agent_b],EPISODES,path)
+    train_ppo(env,agent,EPISODES,path)
 
 if __name__ == "__main__":
     algo = 'PPO'

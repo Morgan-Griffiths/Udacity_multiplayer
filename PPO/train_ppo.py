@@ -6,8 +6,7 @@ import torch
 
 from plot import plot
 
-def train_ppo(env,agents,episodes,path):
-    agent_a,agent_b = agents
+def train_ppo(env,agent,episodes,path):
     name = 'PPO'
     tic = time.time()
     means = []
@@ -16,17 +15,19 @@ def train_ppo(env,agents,episodes,path):
     rewards_sum = deque(maxlen=100)
     for i_episode in range(1,episodes):#,episodes+1):
         # get trajectories
-        trajectory_a,trajectory_b,rewards = collect_trajectories(env,agent_a,agent_b)
-        agent_a.step(trajectory_a)
-        agent_a.step(trajectory_b)
-        agent_b.step(trajectory_b)
-        agent_b.step(trajectory_a)
-        steps += len(trajectory_a[0][0])
+        trajectories = []
+        while len(trajectories) < 300:
+            trajectory_a,trajectory_b,rewards = collect_trajectories(env,agent)
+            trajectories.append(trajectory_a + trajectory_b)
+            
+            rewards_sum.append(np.sum(rewards))
+            means.append(np.mean(rewards_sum))
+            stds.append(np.std(rewards_sum))
+
+        agent.step(trajectories)
+        steps += len(trajectories[0][0])
         # scores = np.sum(np.concatenate(episode_score).reshape(len(states),self.num_agents),axis=1)
         # get the average reward of the parallel environments
-        rewards_sum.append(np.sum(rewards))
-        means.append(np.mean(rewards_sum))
-        stds.append(np.std(rewards_sum))
 
         if i_episode % 10 == 0:
             toc = time.time()
@@ -44,7 +45,7 @@ def train_ppo(env,agents,episodes,path):
                 agent.save_weights(path)
                 break
 
-def collect_trajectories(env,agent_a,agent_b):
+def collect_trajectories(env,agent):
         """
         Playing against itself, the states,next_states,rewards must be separated for each agent. the actions must be for both agents. 
         I can train on only local observations, with two forward passes, one for each agent.
@@ -60,8 +61,8 @@ def collect_trajectories(env,agent_a,agent_b):
         state_b = state[1,:]
         for t in range(200):
             with torch.no_grad():
-                action_a,log_prob_a,dist_a,value_a = agent_a.act(state_a)
-                action_b,log_prob_b,dist_b,value_b = agent_b.act(state_b)
+                action_a,log_prob_a,dist_a,value_a = agent.act(state_a)
+                action_b,log_prob_b,dist_b,value_b = agent.act(state_b)
             action = np.vstack((action_a,action_b))
             next_state,reward,done = env.step(action)
             next_state_a = next_state[0,:]
