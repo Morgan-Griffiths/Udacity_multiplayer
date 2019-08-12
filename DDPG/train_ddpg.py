@@ -13,20 +13,11 @@ def seed_replay_buffer(env, agent, min_buffer_size):
         actions = ((np.random.rand(2,2)*2)-1)
         next_obs,rewards,dones = env.step(actions)
         # reshape
-        next_obs = next_obs.reshape(-1)
-        obs = obs.reshape(-1)
-        actions = torch.from_numpy(actions.reshape(-1)).float()
-        # Calculate TD_error
-        next_action = agent.actor(next_obs)
-        next_value = agent.critic_target(next_obs,next_action)
-        target = reward + agent.gamma * next_value * done
-        local = agent.critic(obs,action)
-        TD_error = target - local
+        agent.add_replay_warmup(obs,actions,rewards,next_obs,dones)
         # Store experience
-        agent.PER.add(obs,actions,np.max(rewards),next_obs,np.max(dones),TD_error)
-        obs = next_obs
         if dones.any():
             obs = env.reset()
+        obs = next_obs
     print('finished replay warm up')
 
 def train_ddpg(env, agent, config):
