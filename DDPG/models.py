@@ -43,7 +43,7 @@ class Critic(nn.Module):
         # x = torch.cat((xs,action),dim=1)
         # x = self.fc1_bn(F.relu(self.fc1(x)))
         xs = F.relu(self.input_layer(obs))
-        x = torch.cat((xs, action), dim=1)
+        x = torch.cat((xs, action), dim=-1)
         for hidden_layer in self.hidden_layers:
             x = F.relu(hidden_layer(x))
         return self.output_layer(x)
