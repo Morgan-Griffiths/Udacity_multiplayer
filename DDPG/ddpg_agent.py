@@ -92,31 +92,50 @@ class Agent():
             action = self.actor(self.tensor(state)).cpu().numpy()
         return np.clip(action, self.action_low, self.action_high)
 
-    def step(self, state, action, reward, next_state, done):
+    def step(self, obs, actions, rewards, next_obs, dones):
+        # cast as torch tensors
+        next_obs = torch.from_numpy(next_obs.reshape(48)).float().to(self.device)
+        obs = torch.from_numpy(obs.reshape(48)).float().to(self.device)
+        actions = torch.from_numpy(actions.reshape(4)).float().to(self.device)
+        # Calc TD error
+        next_action = self.actor(next_obs)
+        next_value = self.critic_target(next_obs,next_action)
+        target = rewards + self.gamma * next_value * dones
+        local = self.critic(obs,actions)
+        TD_error = (target - local).squeeze(0)
+        self.PER.add(obs, actions, rewards, next_obs, dones, TD_error)
 
-        next_action = self.actor(next_state)
-        next_value = self.critic_target(next_state,next_action)
-        target = reward + self.gamma * next_value * done
-        local = self.critic(state,action)
-        TD_error = target - local
-        self.PER.add(state, action, reward, next_state, done, TD_error)
-        
         self.it += 1
         if self.it < self.batch_size or self.it % self.update_every != 0:
             return
         for _ in range(self.update_repeat):
-            self.learn()
+            samples,indicies,importances = self.PER.sample()
+            self.learn(samples,indicies,importances)
 
-    def learn(self):
-        states, actions, rewards, next_states, dones = self.PER.sample()
+    def add_replay_warmup(self,obs,actions,rewards,next_obs,dones):
+        next_obs = torch.from_numpy(next_obs.reshape(48)).float().to(self.device)
+        obs = torch.from_numpy(obs.reshape(48)).float().to(self.device)
+        actions = torch.from_numpy(actions.reshape(4)).float().to(self.device)
+        # Calculate TD_error
+        next_action = self.actor(next_obs)
+        next_value = self.critic_target(next_obs,next_action)
+        target = np.max(rewards) + self.gamma * next_value * np.max(dones)
+        local = self.critic(obs,actions)
+        TD_error = (target - local).squeeze(0)
+        self.PER.add(obs,actions,np.max(rewards),next_obs,np.max(dones),TD_error)
+
+    def learn(self,samples,indicies,importances):
+        
+        states, actions, rewards, next_states, dones = samples
 
         with torch.no_grad():
               target_actions = self.actor_target(next_states)
         next_values = self.critic_target(next_states,target_actions)
-        y_target = rewards.unsqueeze(1) + self.gamma * next_values * (1-dones.unsqueeze(1))
+        y_target = rewards + self.gamma * next_values * (1-dones)
         y_current = self.critic(states, actions)
+        TD_error = y_current - y_target
         # update critic
-        critic_loss = F.smooth_l1_loss(y_current, y_target)
+        critic_loss = ((torch.tensor(importances).to(self.device)*TD_error)**2*0.5).mean()
         self.critic.zero_grad()
         critic_loss.backward()
         self.critic_opt.step()
@@ -127,6 +146,10 @@ class Agent():
         self.actor.zero_grad()
         actor_loss.backward()
         self.actor_opt.step()
+
+        # Update PER
+        TD_errors = TD_error.squeeze(1).detach().cpu().numpy()
+        self.PER.sum_tree.update_priorities(TD_errors,indicies)
 
         # soft update networks
         self.soft_update()
