@@ -77,7 +77,7 @@ class PriorityTree(object):
     def update_priorities(self,TD_errors,indicies):
 #         print('TD_errors',TD_errors)
 #         print('TD_errors shape',TD_errors.shape)
-        priorities = (abs(TD_errors)+self.epsilon)**self.alpha
+        priorities = (np.abs(TD_errors)+self.epsilon)**self.alpha
 #         print('priorities shape',priorities.shape)
 #         print('indicies shape',len(indicies))
 #         print('self.priority_array shape',self.priority_array.shape)
