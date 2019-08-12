@@ -39,9 +39,9 @@ class GaussianNoise(object):
         self.dimension = dimension
         self.epochs = 0
         self.num_epochs = num_epochs
-        self.min_epsilon = 0.01 # minimum exploration probability
-        self.epsilon = 0.3
-        self.decay_rate = 5.0/num_epochs # exponential decay rate for exploration prob
+        self.min_epsilon = 0.0 # minimum exploration probability
+        self.epsilon = 0.5
+        self.decay_rate = .9999#5.0/num_epochs # exponential decay rate for exploration prob
         self.iter = 0
 
     def sample(self):
@@ -49,7 +49,7 @@ class GaussianNoise(object):
         return x
 
     def step(self):
-        self.epsilon = self.min_epsilon + (1.0 - self.min_epsilon)*np.exp(-self.decay_rate*self.iter)
+        self.epsilon = max(self.min_epsilon,self.decay_rate*self.epsilon)
 
 class OUnoise(object):
     def __init__(self,size,seed,mu=0,theta=0.15,sigma=0.2):
@@ -65,6 +65,6 @@ class OUnoise(object):
 
     def sample(self):
         x = self.state
-        dx = self.theta * (self.mu - x) +self.sigma * np.array([random.random() for i in range(len(x))])
+        dx = self.theta * (self.mu - x) + self.sigma * np.random.randn(len(x))
         self.state = x+dx
         return self.state

@@ -35,6 +35,7 @@ def main(algo):
     ddpg_config = Config(algo)
 
     maddpg = MultiAgent(env,state_size,action_size,ddpg_config)
+    maddpg.seed_replay_buffer()
     maddpg.train()
 
 

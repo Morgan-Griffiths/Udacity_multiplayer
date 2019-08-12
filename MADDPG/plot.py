@@ -26,7 +26,7 @@ def plot(name,means,stds):
 
     _, ax = plt.subplots()
 
-    title = str(name)+" performance on Reacher with 20 agents"
+    title = str(name)+" performance on Tennis with 2 agents"
     x_label = "Number of Episodes"
     y_label = "Score"
 
