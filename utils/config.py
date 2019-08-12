@@ -19,7 +19,7 @@ class Config(object):
             self.gae_lambda = 0.97
             self.CLIP_NORM = 10
             # Buffer
-            self.buffer_size = int(1e6)
+            self.buffer_size = int(2e4)
             self.min_buffer_size = int(1e3)
             self.batch_size = 256
             # Priority Replay
@@ -31,18 +31,15 @@ class Config(object):
             self.v_min = -2
             self.v_max = 2
             self.delta_z = (self.v_min - self.v_max) / (self.N_atoms - 1)
-            #
+            # Tennis
             self.action_low=-1.0 
             self.action_high=1.0
-            self.gamma=0.99
-            self.update_every=1 
-            self.update_repeat=1
+            self.winning_condition = 0.5
             # Training
             self.episodes = 4000
             self.tmax = 2000
             self.print_every = 4
-            self.SGD_epoch = 4
+            self.SGD_epoch = 1
             self.checkpoint_path = 'model_weights/ddpg.ckpt'
-            self.winning_condition = 0.5
         else:
             raise ValueError('Agent not implemented')
