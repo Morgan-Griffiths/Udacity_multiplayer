@@ -28,7 +28,7 @@ def plot(means,maxes,mins,mean_steps,num_agents=2,name='DDPG',game='Tennis'):
 
     _, ax = plt.subplots()
 
-    title = "{} performance on {} with {} agents".format(name,game,num_agents)
+    title = "{} performance on Unity {} with {} agents".format(name,game,num_agents)
     x_label = "Number of Episodes"
     y_label = "Score"
 
@@ -46,7 +46,13 @@ def plot(means,maxes,mins,mean_steps,num_agents=2,name='DDPG',game='Tennis'):
     plt.savefig(str(name)+'_performance.png',bbox_inches='tight')
 
     plt.close()
-    plt.plot(steps_smooth)
+
+    _, ax1 = plt.subplots()
+    ax1.plot(xline, steps_smooth, lw=1, color= '#539caf', alpha = 1, label= 'Mean score')
+    ax1.set_title('DDPG mean steps in Unity Tennis')
+    ax1.set_xlabel(x_label)
+    ax1.set_ylabel('Mean steps')
+
     plt.savefig(str(name)+'_mean_steps.png',bbox_inches='tight')
     plt.close()
 
