@@ -23,7 +23,7 @@ With a sliding window of 100 the agent solved the env in 1940 episodes.
 ![Graph](/Assets/ddpg_mean_steps.png)
 
 ## Model architecture
-I stack the stacks and actions
+I stack the states and actions
 
 - states = (48)
 - action = (4)
@@ -40,7 +40,7 @@ Forward pass takes the state and action. Outputs the Q value of the state+action
 | fc1            |(256+4,128)    | 
 | output_layer     | (128,1)    | 
 
-The layers are initialized according to the DDPG paper. With fan in and for the output layer a uniform dist of (-3e-3,3e-3)
+The layers are initialized according to the DDPG paper. With fan in and for the output layer a uniform dist of (-3e-3,3e-3). Further details can be found at [link](https://arxiv.org/pdf/1509.02971.pdf "DDPG Paper")
 
 _Actor_
 Takes state as input
