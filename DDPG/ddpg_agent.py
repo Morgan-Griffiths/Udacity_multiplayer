@@ -11,6 +11,7 @@ from Buffers.replay_buffer import ReplayBuffer
 from Buffers.PER import PriorityReplayBuffer
 from Buffers.priority_tree import PriorityTree
 from utils.noise import OUnoise
+sys.path.append('/home/shuza/Code/Udacity_multiplayer/DDPG')
 from models import hard_update
 from adaptive_noise import AdaptiveParamNoise
 
@@ -22,12 +23,12 @@ class Agent():
         self.action_high = config.action_high
         self.seed = config.seed
 
+        self.clip_norm = config.clip_norm
         self.tau = config.tau
         self.gamma = config.gamma
-        self.update_every = config.update_every
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.L2 = config.L2
-        self.update_repeat = config.update_repeat
+        self.SGD_epoch = config.SGD_epoch
         # noise
         self.noise = OUnoise(nA,config.seed)
         self.noise_scale = 1.0
@@ -135,11 +136,7 @@ class Agent():
         local = self.critic(obs,actions)
         TD_error = (target - local).squeeze(0)
         self.PER.add(obs, actions, rewards, next_obs, dones, TD_error)
-
-        self.it += 1
-        if self.it < self.batch_size or self.it % self.update_every != 0:
-            return
-        for _ in range(self.update_repeat):
+        for _ in range(self.SGD_epoch):
             samples,indicies,importances = self.PER.sample()
             self.learn(samples,indicies,importances)
 
@@ -166,9 +163,10 @@ class Agent():
         y_current = self.critic(states, actions)
         TD_error = y_current - y_target
         # update critic
-        critic_loss = ((torch.tensor(importances).to(self.device)*TD_error)**2*0.5).mean()
+        critic_loss = ((torch.tensor(importances).to(self.device)*TD_error)**2).mean()
         self.critic.zero_grad()
         critic_loss.backward()
+        # torch.nn.utils.clip_grad_norm_(self.critic.parameters(),self.clip_norm)
         self.critic_opt.step()
 
         # update actor
@@ -176,6 +174,7 @@ class Agent():
         actor_loss = -self.critic(states, local_actions).mean()
         self.actor.zero_grad()
         actor_loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.actor.parameters(),self.clip_norm)
         self.actor_opt.step()
 
         # Update PER
