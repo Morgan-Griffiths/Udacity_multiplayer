@@ -5,7 +5,7 @@ Initially i tried to solve the environment with a MADDPG agent. 1st version was 
 At the end i decided to go back to base case - single DDPG agent.
 I found some strange behavior, i've always had poor results with DDPG on my local machine, and i've never been clear on what the problem is, despite many hours of digging through debuggers and code. There seemed to be an issue with loading networks directly from the Critic/Actor class, which was bypassed by passing them through? I can't see how this could be a thing, so its probably just some series of weird coincidences. Nonetheless thats what i'm doing for now, because DDPG is so temperamental that it makes me noticably insane!
 
-I really wanted to separate out the actions and observations into separate agents, but since training on the whole batch actually works this is what i have done.
+I really wanted to separate out the actions and observations into separate agents, but since training on the whole batch actually works this is what i have done. Its clear to me now, that RL requires a very steady hand and clear vision thats thought out before hand. If you start mixing things up, it quickly goes out of control. Unit tests and blueprinting is the future! (Because i do NOT want to repeat the past ;)
 
 The DDPG model:
 
