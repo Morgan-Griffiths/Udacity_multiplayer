@@ -68,14 +68,13 @@ class PriorityReplayBuffer(object):
         norm_importances = [importance / self.max_w for importance in importances]
 #         print('norm_importances',norm_importances)
 
-        samples = random.sample(self.memory, k=self.batch_size)
         states, actions, rewards, next_states, dones = zip(*samples)
 
-        states = torch.tensor(states).float().to(self.device)
-        actions = torch.tensor(actions).float().to(self.device)
-        rewards = torch.tensor(rewards).float().to(self.device)
-        next_states = torch.tensor(next_states).float().to(self.device)
-        dones = torch.tensor(dones).float().to(self.device)
+        states = torch.stack(states).float().to(self.device)
+        actions = torch.stack(actions).float().to(self.device)
+        rewards = torch.from_numpy(np.vstack(rewards)).float().to(self.device)
+        next_states = torch.stack(next_states).float().to(self.device)
+        dones = torch.from_numpy(np.vstack(dones)).float().to(self.device)
 
         # states = torch.from_numpy(np.vstack([e.state for e in samples if e is not None])).float().to(self.device)
         # actions = torch.from_numpy(np.vstack([e.action for e in samples if e is not None])).float().to(self.device)
