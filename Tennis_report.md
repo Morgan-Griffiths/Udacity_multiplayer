@@ -35,11 +35,11 @@ To augment the ability of a replay buffer to improve performance, i have added t
 
 The actions at each step are chosen deterministically by the policy according to the state. This simplifies the bellman equation significantly, 
 
-![math](Assets/bellman.gif)
+![math](Assets/Bellman.gif)
 
 Becomes
 
-![math](Assets/bellman.gif)
+![math](Assets/Deterministic_bellman.gif)
 
 By avoiding taking a max over a continuous action space, or descretizing the action space to reduce dimensionality. Because of the deterministic nature, it does not explore by default. Which makes it necessary to add some noise, either to the action itself, or to the parameters generating the action. This also means this is a good strategy if there is always 1 good option, but not if mixed strategies are ideal like in poker for example.
 
@@ -94,7 +94,7 @@ This is our loss. We then perform gradient ascent on the gradient of the loss to
 
 ## Experiments:
 
-I trained initially with a large replay buffer. But progress was slow. I realized i should reduce the replay size significantly because; One, old memories don't offer that much in this environment, training on initial ball misses is not that useful over time. Two, speed of processing, as my version of PER bogs down with a large amount of intermediate nodes. I think this is due to the way i calculate the priority sum. I immediately saw the difference in speed of learning. There is a trade off in terms of variance, the smaller the buffer, the noisier the results. For example, with a replay size of 1000000, at 1:10 it was still at a mean of ~0.25. Whereas with a replay size of 10,000 it solved the environment in 20 minutes. This is also due to PER being able to extract the relevant information out of stored replays better than a vanilla replay buffer. 
+I trained initially with a large replay buffer. But progress was slow. I realized i should reduce the replay size significantly because; One, old memories don't offer that much in this environment, training on initial ball misses is not that useful over time. Two, speed of processing, as my version of PER bogs down with a large amount of intermediate nodes. I think this is due to the way i calculate the priority sum. I immediately saw the difference in speed of learning. There is a trade off in terms of variance, the smaller the buffer, the noisier the results. For example, with a replay size of 1000000, at 1:10 it was still at a mean of ~0.25. Whereas with a replay size of 4,000 it solved the environment in 20 minutes. This is also due to PER being able to extract the relevant information out of stored replays better than a vanilla replay buffer. Ultimately a buffer size of 10k seems to strike a good balance between depth of learning speed.
 
 ## Questions
 
