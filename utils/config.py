@@ -20,7 +20,7 @@ class Config(object):
             self.CLIP_NORM = 10
             # Buffer
             self.buffer_size = int(1e6)
-            self.min_buffer_size = int(1e4)
+            self.min_buffer_size = int(1e3)
             self.batch_size = 256
             # Priority Replay
             self.ALPHA = 0.6 # 0.7 or 0.6
