@@ -25,7 +25,10 @@ def train_ddpg(env, agent, config):
     episodes,tmax = config.episodes,config.tmax
     tic = time.time()
     means = []
+    mins = []
+    maxes = []
     stds = []
+    mean_steps = []
     steps = []
     scores_window = deque(maxlen=100)
     for e in range(1,episodes):
@@ -44,21 +47,24 @@ def train_ddpg(env, agent, config):
                 steps.append(int(t))
                 break
             
-        means.append(np.mean(episode_scores))
-        stds.append(np.std(episode_scores))
         scores_window.append(np.sum(episode_scores))
+        means.append(np.mean(scores_window))
+        mins.append(min(scores_window))
+        maxes.append(max(scores_window))
+        mean_steps.append(np.mean(steps))
+        stds.append(np.std(scores_window))
         if e % 50 == 0:
             toc = time.time()
             r_mean = np.mean(scores_window)
             r_max = max(scores_window)
             r_min = min(scores_window)
             r_std = np.std(scores_window)
-            plot(means,stds,num_agents=2,name=config.name,game='Tennis')
-            print("\rEpisode: {} out of {}, Steps {}, Mean steps {:.1f}, Rewards: mean {:.2f}, min {:.2f}, max {:.2f}, std {:.2f}, Elapsed {:.2f}".format(e,episodes,np.sum(steps),np.mean(steps),r_mean,r_min,r_max,r_std,(toc-tic)/60))
-        if np.mean(scores_window) > 0.01:#config.winning_condition:
+            plot(means,maxes,mins,mean_steps,num_agents=2,name=config.name,game='Tennis')
+            print("\rEpisode: {} out of {}, Steps {}, Mean steps {:.2f}, Noise {:.2f}, Rewards: mean {:.2f}, min {:.2f}, max {:.2f}, std {:.2f}, Elapsed {:.2f}".format(e,episodes,np.sum(steps),np.mean(steps),agent.noise_scale,r_mean,r_min,r_max,r_std,(toc-tic)/60))
+        if np.mean(scores_window) > config.winning_condition:
             print('Env solved!')
             # save scores
-            pickle.dump([means,stds], open(str(config.name)+'_scores.p', 'wb'))
+            pickle.dump([means,maxes,mins,mean_steps], open(str(config.name)+'_scores.p', 'wb'))
             # save policy
             agent.save_weights(config.checkpoint_path)
             break
