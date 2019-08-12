@@ -12,7 +12,11 @@ The agent is DDPG (Deep Deterministic Policy Gradients) with the following upgra
 Contains the weights of the trained RL bot to solve the problem.
 Graphs indicating the progress of the agent and when it solved the problem.
 
-The DDPG agent solved the enviroment in 1450 episodes (Average Reward over the last 100 steps > 0.5). Which took 20 minutes of actual training time. And a maximum reward of 2.8
+The DDPG agent solved the enviroment in 1450 (fastest) episodes (Average Reward over the last 100 steps > 0.5). Which took 20 minutes of actual training time. And a maximum reward of 2.8
+
+I let it train until 0.7 for the following graph
+
+![Graph](/Assets/ddpg_performance.png)
 
 ## There are two Environments:
 
