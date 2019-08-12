@@ -17,9 +17,9 @@ class Config(object):
             self.tau=0.01 # 0.001
             self.noise_decay=0.99995
             self.gae_lambda = 0.97
-            self.CLIP_NORM = 10
+            self.clip_norm = 10
             # Buffer
-            self.buffer_size = int(2e4)
+            self.buffer_size = int(1e4)
             self.min_buffer_size = int(1e3)
             self.batch_size = 256
             # Priority Replay
@@ -34,7 +34,7 @@ class Config(object):
             # Tennis
             self.action_low=-1.0 
             self.action_high=1.0
-            self.winning_condition = 0.5
+            self.winning_condition = 0.7
             # Training
             self.episodes = 4000
             self.tmax = 2000
