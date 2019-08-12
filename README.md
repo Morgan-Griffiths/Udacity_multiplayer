@@ -4,14 +4,15 @@ Submission for completing the Udacity Project
 
 ## Implementation
 
-The agent is MADDPG (Multi Agent Deep Deterministic Policy Gradients)
+The agent is DDPG (Deep Deterministic Policy Gradients) with the following upgrades.
 
+- Priority Replay Buffer
 - Soft updates
 
 Contains the weights of the trained RL bot to solve the problem.
 Graphs indicating the progress of the agent and when it solved the problem.
 
-The MADDPG agent solved the enviroment in 625 steps (Average Reward over the last 100 steps > 0.5).
+The DDPG agent solved the enviroment in 625 steps (Average Reward over the last 100 steps > 0.5).
 
 ## There are two Environments:
 
@@ -54,22 +55,21 @@ Benchmark Mean Reward (Striker & Goalie Brain): 0 (the means will be inverse of 
 
 ### Agents
 
-MADDPG, PPO (In process of implementation)
+DDPG, (Works)
+(MADDPG, PPO, In process of implementation)
 
 ### Buffers
 
 Vanilla ReplayBuffer, Priority Experience Replay
 
-### models.py
+### Utils
 
-**contains two models:**
+contains noise for ddpg, plotting, ddpg agent configuration file, unity_env wrapper.
 
-Actor, Critic
+### DDPG Agent weights
 
-### Agent weights
-
-model_weights/actor
-model_weights/critic
+DDPG/model_weights/actor
+DDPG/model_weights/critic
 
 ## Installation
 
@@ -124,6 +124,7 @@ If necessary, inside main.py, change the path to the unity environment appropria
 Make sure the environment path is correctly set in main.py and run 
 
 ```
+cd DDPG
 python main.py
 ```
 
